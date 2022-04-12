@@ -1,0 +1,25 @@
+^B^O^B allows IRC operators to control variuos aspects
+of the IRC network. In order to use ^B^O^B your
+nickname must be ^BREGISTERED^B and you must be
+^BIDENTIFIED^B
+ 
+For more information on a specific command type
+^B/msg ^O HELP <command>^B.
+ 
+@3
+^BSerives Root Commands:^B
+Nothing
+Yet
+@2
+^BServices Admin Commands:^B
+Nothing
+Yet
+@1
+^BIRC Operator Commands:^B
+Nothing
+Yet
+@0
+^BGeneral User Commands:^B
+*** ^BOPERLIST^B    -   List of IRC Operators currently online
+*** ^BVERSION^B     -   Display IRCSP version information
+*** ^BHELP^B        -   Shows this screen

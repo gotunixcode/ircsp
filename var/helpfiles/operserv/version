@@ -1,0 +1,4 @@
+Syntax: ^B/msg ^O VERSION^B
+ 
+The ^BVERSION^B command will give you the current VERSION
+information of IRCSP.

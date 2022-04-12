@@ -1,0 +1,656 @@
+/*
+---------------------------------------------------------------------------------------------------------------------------------
+                                          ___   ____     ____   ____    ____
+                                         |_ _| |  _ \   / ___| / ___|  |  _ \
+                                          | |  | |_) | | |     \___ \  | |_) |
+                                          | |  |  _ <  | |___   ___) | |  __/
+                                         |___| |_| \_\  \____| |____/  |_|
+
+                                        INTERNET RELAY CHAT SERVICES PACKAGE
+---------------------------------------------------------------------------------------------------------------------------------
+                                                                .::::.
+                                                              .::::::::.
+                                                              :::::::::::
+                                                              ':::::::::::..
+                                                               :::::::::::::::'
+                                                                ':::::::::::.
+                                                                  .::::::::::::::'
+                                                                .:::::::::::...
+                                                               ::::::::::::::''
+                                                   .:::.       '::::::::''::::
+                                                 .::::::::.      ':::::'  '::::
+                                                .::::':::::::.    :::::    '::::.
+                                              .:::::' ':::::::::. :::::      ':::.
+                                            .:::::'     ':::::::::.:::::       '::.
+                                          .::::''         '::::::::::::::       '::.
+                                         .::''              '::::::::::::         :::...
+                                      ..::::                  ':::::::::'        .:' ''''
+                                   ..''''':'                    ':::::.'
+---------------------------------------------------------------------------------------------------------------------------------
+
+This file is part of the [IRCSP] source code.
+
+Detailed copyright and licensing information can be found in the COPYRIGHT and LICENSE files which should have been
+included in this distribution.
+
+@Author       - Justin Ovens <jovens@gotunix.net>
+@Copyright    - (C) 1995 - 2019  Justin Ovens and
+              -                  GOTUNIX NETWORKS
+@License Type - GPLv3/Open Source
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+SOFTWARE LICENSE AGREEMENT
+IMPORTANT - READ CAREFULLY
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+---------------------------------------------------------------------------------------------------------------------------------
+*/
+
+
+/* Standard Includes */
+#include	<stdio.h>
+#include	<stdlib.h>
+#include	<stdint.h>
+#include	<stdarg.h>
+#include	<unistd.h>
+#include	<string.h>
+#include	<assert.h>
+
+
+/* IRCSP Core Includes */
+#include	"conf.h"
+#include	"ircsp.h"
+#include	"log.h"
+#include	"alloc.h"
+#include	"modules.h"
+#include	"users.h"
+#include	"admin.h"
+#include	"servers.h"
+#include	"nickserv.h"
+
+
+/* IRCSP Module Includes */
+#include	"libundernet.h"
+#include	"libundernet_parser.h"
+#include	"libundernet_m_version.h"
+
+
+/* Compiler Generated Includes */
+#include	"config.h"
+
+
+/*
+---------------------------------------------------------------------------------------------------------------------------------
+ FUNCTION       |    libundernet_m_nick ()
+                |
+ DESCRIPTION    |    Undernet Protocol (m_nick)
+                |    This function will handle Server Message: NICK [N]
+                |
+                |
+                |
+ INPUTS         |    sBuf   = Socket Buffer
+                |
+ RETURNS        |    TRUE
+---------------------------------------------------------------------------------------------------------------------------------
+*/
+int libundernet_m_nick (sBuf)
+	char		*sBuf;
+{
+	if (DEBUG)
+	{
+		ircsp_log (F_MAINLOG, get_log_message (LOG_MESSAGE_FUNCSTART),
+			__FILE__, __LINE__, __FUNCTION__);
+	}
+
+
+	Nickname			*p_nickname;
+	Nickname			*p_nickname_new;
+	Hostname			*p_hostname;
+	Operator			*p_operator;
+	Server				*p_server;
+	NickInfo			*nsregp;
+	NickInfoAccess			*p_access;
+	ServicesRoot			*p_servicesRoot;
+	ServicesAdmin			*p_ServicesAdmin;
+	char				*argv[9];
+	char				*c_nickname;
+	int				i_count;
+	time_t				t_timestamp;
+
+
+	assert (sBuf != NULL);
+
+
+	c_nickname = (char *)ircsp_calloc (1, strlen (sBuf) + 20);
+	if (c_nickname != NULL)
+	{
+		strcpy (c_nickname, sBuf);		/* Make a copy of sBuf in case we need it un modified for whatever reason. */
+
+		argv[0] = strtok (sBuf, " ");		/* This could either be the a Server Numeric or a Nickname Numeric */
+							/* Depending on if this is a new user or a nick change. */
+		strtok (NULL, " ");			/* NICK [N] Command, we can ignore this. */
+
+
+		i_count = strlen (argv[0]);
+		if (i_count == 2)
+		{
+			/*
+			------------------------------------------------------------------------------------------------------------------------------------------------
+			 NEW NICKNAME!
+
+			    We check the length of argv[0] if its 2 we have a Server Numeric which means this is a new user
+			    connecting to the server matching that numeric.
+
+			    __BUFFER__: AD N shitholez 1 1572734200 ~jovens cthulhu.gotunix.net CsEAA8 ADAAC :Justin Ovens
+
+			------------------------------------------------------------------------------------------------------------------------------------------------
+			*/
+			int	i_is_oper = 0;
+
+
+			if (DEBUG)
+			{
+				ircsp_log (F_MAINLOG, "[%s:%d:%s()]: New Nickname detected\n", __FILE__, __LINE__, __FUNCTION__);
+			}
+
+			argv[1] = strtok (NULL, " ");	/* Nickname */
+			strtok (NULL, " ");		/* Hopcount, we can ignore this */
+			argv[2] = strtok (NULL, " ");	/* Time Stamp */
+			argv[3] = strtok (NULL, " ");	/* Username */
+			argv[4] = strtok (NULL, " ");	/* Hostname */
+			argv[5] = strtok (NULL, " ");	/* Modes */
+
+
+			p_nickname = Nickname_Find (argv[1]);
+			if (p_nickname != NULL)
+			{
+				ircsp_error (TRUE, TRUE, "[%s:%d:%s()]: Duplicate NICKNAME [%s] found at [%p] something went wrong. we should restart\n",
+					__FILE__, __LINE__, __FUNCTION__, argv[1], p_nickname->nickname);
+			}
+			else
+			{
+				if (argv[5][0] != '+')
+				{
+					i_is_oper = 0;
+				}
+				else
+				{
+					while (*++argv[5] != '\0')
+					{
+						if (*argv[5] == 'o')
+						{
+							i_is_oper = 1;
+						}
+					}
+					strtok (NULL, " ");
+				}
+				argv[6] = strtok (NULL, " ");	/* Nicknames Numeric */
+
+				p_server = Server_Find (argv[0]);
+				if (p_server != NULL)
+				{
+					ircsp_log (F_MAINLOG, "[%s:%d:%s()]: Adding new NICKNAME [%s] (%s@%s) [%s] OPERATOR[%d] on SERVER[%s]\n",
+						__FILE__, __LINE__, __FUNCTION__, argv[1], argv[3], argv[4], argv[6], i_is_oper, p_server->name);
+
+					p_hostname = Hostname_Find (argv[4]);
+					if (p_hostname != NULL)
+					{
+						if (DEBUG)
+						{
+							ircsp_log (F_MAINLOG, "[%s:%d:%s()]: HOSTNAME [%s] found in Hostname_List at [%p], increasing clone count\n",
+								__FILE__, __LINE__, __FUNCTION__, p_hostname->hostname, p_hostname->hostname);
+
+							p_hostname->numHosts++;
+						}
+					}
+					else
+					{
+						p_hostname = Hostname_Add (argv[4]);
+						status->numHosts++;
+					}
+
+
+					if (p_hostname != NULL)
+					{
+						p_nickname = Nickname_Add (argv[1], argv[3], p_hostname, p_server, atoi (argv[2]));
+						p_nickname->numeric = (char *)ircsp_calloc (1, strlen (argv[6]) + 5);
+						if (p_nickname->numeric)
+						{
+							strcpy (p_nickname->numeric, argv[6]);
+						}
+
+						if (p_nickname != NULL)
+						{
+							if (i_is_oper)
+							{
+								nsregp = nickinfo_find (p_nickname->nickname);
+								if (!nsregp)
+								{
+									if (service->nickserv)
+									{
+										cmd_notice (service->nickserv->nickname, p_nickname->nickname,
+											"It is \002STRONGLY\002 encourged that IRC Operators register their nicknames.");
+										cmd_notice (service->nickserv->nickname, p_nickname->nickname,
+											"Type: \002/msg %s HELP REGISTER\002", config->nickserv->nickname);
+									}
+									else
+									{
+										cmd_notice (config->server_name, p_nickname->nickname,
+											"It is \002STRONGLY\002 encourged that IRC Operators register their nicknames.");
+										cmd_notice (config->server_name, p_nickname->nickname,
+											"Type: \002/msg %s HELP REGISTER\002", config->nickserv->nickname);
+									}
+								}
+								SetOperator (p_nickname);
+								p_operator = Operator_Add (p_nickname);
+								if (p_operator == NULL)
+								{
+									ircsp_error (TRUE, TRUE, "[%s:%d:%s()]: Failed to add new OPERATOR [%s] to Operator_List\n",
+										__FILE__, __LINE__, __FUNCTION__, argv[1]);
+								}
+
+								p_server->numOpers++;
+								status->numOpers++;
+							}
+							p_server->numUsers++;
+							status->numUsers++;
+
+
+							/*
+							----------------------------------------------------------------------------------------------------------------
+							 NickServ functions
+
+							    We are going to check that the nickname in question is REGISTERED with NickServ
+							        a) NICKNAME IS REGISTERED
+							            1) Check and see if the nickname has AUTOIDENTiFH enabled
+							            2) Inform the nickname they have to IDENTIFY
+							                i) If KILLPROTECTION is enabled warn the nickname they have x amount of minutes before they
+							                   are automatically killed, and the nickname is juped
+
+							        b) NICKNAME IS NOT REGISTERED
+							            1) Should we let the user know that the nickname is available to be registered?
+							----------------------------------------------------------------------------------------------------------------
+							*/
+							nsregp = nickinfo_find (p_nickname->nickname);
+							if (nsregp)
+							{
+								if (nsregp->flags & NICKSERV_AUTOIDENTIFY)
+								{
+									/*
+									------------------------------------------------------------------------------------------------
+									 The user has AUTOIDENTIFY enabled, lets first generate a hostmask using the information
+									 stored in the Users list.
+
+									 Then we compare that against the access list set in the NickInfoAccess list. If we get
+									 a match we will automatically set the NICK_IS_IDENTIFIED flag. otherwise we will continue
+									 to pester the user to IDENTIFY.
+									------------------------------------------------------------------------------------------------
+									*/
+
+
+									p_servicesRoot = ServicesRoot_Find (p_nickname->nickname);
+									p_ServicesAdmin = ServicesAdmin_Find (p_nickname->nickname);
+
+									if (p_servicesRoot)
+									{
+										/* User is set as a ServicesRoot disable autoidentify for added security. */
+										if (service->nickserv)
+										{
+											cmd_notice (service->nickserv->nickname, p_nickname->nickname,
+												"\002AUTOIDENTIFY\002 Disabled for Services Root.");
+										}
+										else
+										{
+											cmd_notice (config->server_name, p_nickname->nickname,
+												"\002AUTOIDENTIFY\002 Disabled for Services Root.");
+										}
+
+										nsregp->flags &= ~NICKSERV_AUTOIDENTIFY;
+									}
+									else if (p_ServicesAdmin)
+									{
+										/* User is a Services Admin,disable autonotify for added security. */
+
+										if (service->nickserv)
+										{
+											cmd_notice (service->nickserv->nickname, p_nickname->nickname,
+												"\002AUTOIDENTIFY\002 - Disabled for Services Admins.");
+										}
+										else
+										{
+											cmd_notice (config->server_name, p_nickname->nickname,
+												"\002AUTOIDENTIFY\002 - Disabled for Services Admins.");
+										}
+
+										nsregp->flags &= ~NICKSERV_AUTOIDENTIFY;
+									}
+									else
+									{
+										char	*hostmask;
+										hostmask = (char *)ircsp_calloc(1,
+											strlen (p_nickname->username) + strlen (p_nickname->p_Hostname->hostname) + 5);
+										sprintf (hostmask, "%s@%s", p_nickname->username, p_nickname->p_Hostname->hostname);
+
+										p_access = nickinfo_access_wild (nsregp, hostmask);
+										if (p_access)
+										{
+											if (service->nickserv)
+											{
+												cmd_notice (service->nickserv->nickname, p_nickname->nickname,
+													"\002AUTOIDENTIFY ENABLED\002");
+												cmd_notice (service->nickserv->nickname, p_nickname->nickname,
+													"You have been identified based on your host access list");
+											}
+											else
+											{
+												cmd_notice (config->server_numeric, p_nickname->nickname,
+													"\002AUTOIDENTIFY ENABLED\002");
+												cmd_notice (config->server_numeric, p_nickname->nickname,
+													"You have been identified based on your host access list");
+											}
+
+											p_nickname->flags |= NICK_IS_IDENTIFIED;
+										}
+									}
+								}
+
+								if (!(p_nickname->flags & NICK_IS_IDENTIFIED))
+								{
+									/*
+									------------------------------------------------------------------------------------------------
+									 if service->nickserv is NULL we are probably still BURSTING
+									 And if thats the case we will send our NOTICE using our server_name instead
+									 of NickServ's nickname.
+									------------------------------------------------------------------------------------------------
+									*/
+									if (service->nickserv)
+									{
+										cmd_notice (service->nickserv->nickname, p_nickname->nickname,
+											"This nickname is owned by someone else.  Please choose another.");
+										cmd_notice (service->nickserv->nickname, p_nickname->nickname,
+											"If this is your nickname, type /msg %s IDENTIFY \002password\002",
+											config->nickserv->nickname);
+									}
+									else
+									{
+										cmd_notice (config->server_name, p_nickname->nickname,
+											"This nickname is owned by someone else.  Please choose another.");
+										cmd_notice (config->server_name, p_nickname->nickname,
+											"If this is your nickname, type /msg %s IDENTIFY \002password\002",
+											config->nickserv->nickname);
+									}
+
+									if (nsregp->flags & NICKSERV_KILLPROTECT)
+									{
+										/*
+										----------------------------------------------------------------------------------------
+										 User has KILLPROTECTION enabled.  Lets warn the user they will be automatically
+										 KILLed in x amount of minutes if they do not IDENTIFY or change nicknames.
+										----------------------------------------------------------------------------------------
+										*/
+										if (service->nickserv)
+										{
+											cmd_notice (service->nickserv->nickname, p_nickname->nickname,
+												"If you do not change your nickname or \002IDENTIFY\002 you will be disconnected in 5 minutes");
+										}
+										else
+										{
+											cmd_notice (config->server_numeric, p_nickname->nickname,
+												"If you do not change your nickname or \002IDENTIFY\002 you will be disconnected in 5 minutes");
+										}
+									}
+								}
+							}
+						}
+						else
+						{
+							ircsp_error (TRUE, TRUE, "[%s:%d:%s()]: Failed to add new NICKNAME [%s] to Nickname_List\n",
+								__FILE__, __LINE__, __FUNCTION__, argv[1]);
+						}
+					}
+				}
+				else
+				{
+					ircsp_error (TRUE, TRUE, "[%s:%d:%s()]: Failed to find SERVER [%s] in Server_List\n",
+						__FILE__, __LINE__, __FUNCTION__, argv[0]);
+				}
+			}
+		}
+		else
+		{
+			/*
+			---------------------------------------------------------------------------------------------------------
+			 NICK CHANGE
+
+			    __BUFFER__: ADAAC N fuck 1572734221
+			---------------------------------------------------------------------------------------------------------
+			*/
+
+			if (DEBUG)
+			{
+				ircsp_log (F_MAINLOG, "[%s:%d:%s()]: Nickname change detected\n", __FILE__, __LINE__, __FUNCTION__);
+			}
+
+			argv[1] = strtok (NULL, " ");		/* New Nickname */
+
+
+			/* First we are going to check and make sure the new nickname isn't already in Nickname_List */
+			p_nickname_new = Nickname_Find (argv[1]);
+			if (p_nickname_new != NULL)
+			{
+				/* The new nickname was found, lets try to correct this. */
+				if (DEBUG)
+				{
+					ircsp_log (F_MAINLOG, "[%s:%d:%s()]: Nickname Change: WARNING New nickname was already found in Nickname_List (Trying to correct)\n",
+						__FILE__, __LINE__, __FUNCTION__);
+				}
+				Nickname_Del (argv[1]);
+			}
+
+			/* Lets find the current nickname in the Nickname_List */
+			p_nickname = Nickname_Find (argv[0]);
+			if (p_nickname != NULL)
+			{
+				p_hostname = Hostname_Find (p_nickname->p_Hostname->hostname);
+				if (p_hostname == NULL)
+				{
+					/* This should not happen, and eventually when/if we run into these issues instead of crashing
+					   we should restart. */
+
+					ircsp_error (TRUE, TRUE, "[%s:%d:%s()]: HOSTNAME [%s] was not found\n",
+						__FILE__, __LINE__, __FUNCTION__, p_nickname->p_Hostname->hostname);
+				}
+
+				p_nickname_new = Nickname_Add (argv[1], p_nickname->username, p_hostname, p_nickname->p_Server, p_nickname->stamp);
+				p_nickname_new->numeric = (char *)ircsp_calloc (1, strlen (p_nickname->numeric) + 5);
+				if (p_nickname_new->numeric)
+				{
+					strcpy (p_nickname_new->numeric, p_nickname->numeric);
+				}
+
+				if (p_nickname_new != NULL)
+				{
+					if (DEBUG)
+					{
+						ircsp_log (F_MAINLOG, "[%s:%d:%s()]: Nickname Change: Successfully updated [%s -> %s] at [%p] in Nickname_List\n",
+							__FILE__, __LINE__, __FUNCTION__, p_nickname->nickname, p_nickname_new->nickname, p_nickname_new->nickname);
+					}
+
+					/* New nick was added, now we need to check if the user was an authenticated administator, was the user an operator? */
+
+					if (p_nickname->flags & NICK_IS_ROOT)
+					{
+						p_servicesRoot = ServicesRoot_Find (p_nickname->nickname);
+						p_servicesRoot->p_NickInfo = NULL;
+						p_servicesRoot->p_Nickname = NULL;
+
+						p_nickname->flags &= ~NICK_IS_ROOT;
+					}
+
+					if (p_nickname->flags & NICK_IS_ADMIN)
+					{
+						p_ServicesAdmin = ServicesAdmin_Find (p_nickname->nickname);
+						p_ServicesAdmin->p_NickInfo = NULL;
+						p_ServicesAdmin->p_Nickname = NULL;
+
+						p_nickname->flags &= ~NICK_IS_ADMIN;
+					}
+
+
+					if (IsOperator (p_nickname))
+					{
+						/* User was an IRC Operator, lets update flags. */
+
+						if (DEBUG)
+						{
+							ircsp_log (F_MAINLOG, "[%s:%d:%s()]: Nickname Change: User was an IRC Operator, updating flags\n",
+								__FILE__, __LINE__, __FUNCTION__);
+						}
+
+
+						SetOperator (p_nickname_new);
+						DelOperator (p_nickname);
+
+						p_operator = Operator_Add (p_nickname_new);
+						Operator_Del (p_nickname);
+					}
+
+					nsregp = nickinfo_find (p_nickname_new->nickname);
+					if (nsregp)
+					{
+						if (nsregp->flags & NICKSERV_AUTOIDENTIFY)
+						{
+							char	*hostmask;
+
+							p_servicesRoot = ServicesRoot_Find (p_nickname_new->nickname);
+							p_ServicesAdmin = ServicesAdmin_Find (p_nickname_new->nickname);
+							if (p_servicesRoot)
+							{
+								/* User is set as a ServicesRoot disable autoidentify for added security. */
+								if (service->nickserv)
+								{
+									cmd_notice (service->nickserv->nickname, p_nickname_new->nickname,
+										"\002AUTOIDENTIFY\002 Disabled for Services Root.");
+								}
+								else
+								{
+									cmd_notice (config->server_name, p_nickname_new->nickname,
+										"\002AUTOIDENTIFY\002 Disabled for Services Root.");
+								}
+
+								nsregp->flags &= ~NICKSERV_AUTOIDENTIFY;
+							}
+							else if (p_ServicesAdmin)
+							{
+								if (service->nickserv)
+								{
+									cmd_notice (service->nickserv->nickname, p_nickname_new->nickname,
+										"\002AUTOIDENTIFY\002 - Disabled for Services Admins.");
+								}
+								else
+								{
+									cmd_notice (config->server_name, p_nickname_new->nickname,
+										"\002AUTOIDENTIFY\002 - Disabled for Services Admins.");
+								}
+
+								nsregp->flags &= ~NICKSERV_AUTOIDENTIFY;
+							}
+							else
+							{
+								hostmask = (char *)ircsp_calloc (1, strlen (p_nickname_new->username) +
+									strlen (p_nickname_new->p_Hostname->hostname) + 5);
+								sprintf (hostmask, "%s@%s", p_nickname_new->username, p_nickname->p_Hostname->hostname);
+
+
+								p_access = nickinfo_access_wild (nsregp, hostmask);
+								if (p_access)
+								{
+									if (service->nickserv)
+									{
+										cmd_notice (service->nickserv->nickname, p_nickname_new->nickname,
+											"\002AUTOIDENTIFY ENABLED\002");
+										cmd_notice (service->nickserv->nickname, p_nickname_new->nickname,
+											"You have been identified based on your host access list");
+									}
+									else
+									{
+										cmd_notice (config->server_name, p_nickname_new->nickname,
+											"\002AUTOIDENTIFY ENABLED\002");
+										cmd_notice (config->server_name, p_nickname_new->nickname,
+											"You have been identified based on your host access list");
+									}
+
+									p_nickname_new->flags |= NICK_IS_IDENTIFIED;
+								}
+							}
+						}
+
+						if (!(p_nickname_new->flags & NICK_IS_IDENTIFIED))
+						{
+							if (service->nickserv)
+							{
+								cmd_notice (service->nickserv->nickname, p_nickname_new->nickname, "This nickname is owned by someone else.  Please choose another.");
+								cmd_notice (service->nickserv->nickname, p_nickname_new->nickname, "If this is your nickname, type /msg %s IDENTIFY \002password\002",
+									config->nickserv->nickname);
+							}
+							else
+							{
+								cmd_notice (config->server_numeric, p_nickname_new->nickname, "This nickname is owned by someone else.  Please choose another.");
+								cmd_notice (config->server_numeric, p_nickname_new->nickname, "If this is your nickname, type /msg %s IDENTIFY \002password\002",
+									config->nickserv->nickname);
+							}
+
+							if (nsregp->flags & NICKSERV_KILLPROTECT)
+							{
+								if (service->nickserv)
+								{
+									cmd_notice (service->nickserv->nickname, p_nickname_new->nickname, "If you do not change your nickname or \002IDENTIFY\002 you will be disconnected in 5 minutes");
+								}
+								else
+								{
+									cmd_notice (config->server_numeric, p_nickname_new->nickname, "If you do not change your nickname or \002IDENTIFY\002 you will be disconnected in 5 minutes");
+								}
+							}
+						}
+					}
+
+
+
+					/* And finally we can delete the old nickname! */
+					Nickname_Del (p_nickname->nickname);
+
+				}
+
+			}
+			else
+			{
+				ircsp_error (TRUE, TRUE, "[%s:%d:%s()]: Nickname Change: ERROR Old Nickname [%s] was not found in Nickname_List\n",
+					__FILE__, __LINE__, __FUNCTION__, argv[0]);
+			}
+		}
+		ircsp_free (c_nickname);
+	}
+	else
+	{
+		ircsp_error (TRUE, LOG_MESSAGE_OUTOFMEMORY, get_log_message (LOG_MESSAGE_OUTOFMEMORY),
+			__FILE__, __LINE__, __FUNCTION__);
+	}
+
+	if (DEBUG)
+	{
+		ircsp_log (F_MAINLOG, get_log_message (LOG_MESSAGE_FUNCEND), __FILE__, __LINE__, __FUNCTION__);
+	}
+}

@@ -1,0 +1,11 @@
+Syntax: ^B/msg ^N SET KILL [ON|OFF]^B
+ 
+Turns the automatic kill protection option for
+your nickname on or off.  With kill protection on,
+if another user tries to take your nick, they will
+be given 2 minutes to change to another nick, after
+which they will be forcibly removed from IRC by ^N.
+ 
+^BNOTE^B if the hostmask of the user is listed
+in your ACCESS LIST the user will not be
+automatically killed.   

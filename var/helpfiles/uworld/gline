@@ -1,0 +1,9 @@
+Help on:  ^BGLINE^B
+Syntax: /msg ^U GLINE <hostmask> [length] <reason>
+ 
+Usage:  Adds a GLINE for the given hostmask. Length is
+given in seconds; if ommitted it uses the default
+AUTOLENGTH. A reason is required.
+
+
+Default Minimum Level:  0001 (Operator)

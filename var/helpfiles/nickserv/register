@@ -1,0 +1,17 @@
+Syntax: /msg ^N ^BREGISTER password^B
+
+
+Registers your nickname in the NickServ database. Once
+your nick is registered, you can use the ^BSET^B and
+^BACCESS^B commands to configure your nick's settings
+as you like them.  Make sure you remember the password you
+use when registering.  You willneed it to make changes to 
+your nick later. (Case does matter)
+ 
+Passwords must be at least 8 charaters long, Try to 
+use something that is not easily guessable. For example
+Using your real name or your nickname as a password is
+probably a bad idea.
+
+Don't use spaces in your passwords either. 
+

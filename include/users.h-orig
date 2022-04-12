@@ -1,0 +1,156 @@
+// ---------------------------------------------------------------------------------------------------------------------------------
+//                                           ___   ____     ____   ____    ____
+//                                          |_ _| |  _ \   / ___| / ___|  |  _ \
+//                                           | |  | |_) | | |     \___ \  | |_) |
+//                                           | |  |  _ <  | |___   ___) | |  __/
+//                                          |___| |_| \_\  \____| |____/  |_|
+//
+//                                         INTERNET RELAY CHAT SERVICES PACKAGE
+// ---------------------------------------------------------------------------------------------------------------------------------
+//                                                                 .::::.
+//                                                               .::::::::.
+//                                                               :::::::::::
+//                                                               ':::::::::::..
+//                                                                :::::::::::::::'
+//                                                                 ':::::::::::.
+//                                                                   .::::::::::::::'
+//                                                                 .:::::::::::...
+//                                                                ::::::::::::::''
+//                                                    .:::.       '::::::::''::::
+//                                                  .::::::::.      ':::::'  '::::
+//                                                 .::::':::::::.    :::::    '::::.
+//                                               .:::::' ':::::::::. :::::      ':::.
+//                                             .:::::'     ':::::::::.:::::       '::.
+//                                           .::::''         '::::::::::::::       '::.
+//                                          .::''              '::::::::::::         :::...
+//                                       ..::::                  ':::::::::'        .:' ''''
+//                                    ..''''':'                    ':::::.'
+// ---------------------------------------------------------------------------------------------------------------------------------
+//
+// This file is part of the [IRCSP] source code.
+//
+// Detailed copyright and licensing information can be found in the COPYRIGHT and LICENSE files which should have been
+// included in this distribution.
+//
+// @Author       - Justin Ovens <jovens@gotunix.net>
+// @Copyright    - (C) 1995 - 2019  Justin Ovens and
+//               -                  GOTUNIX NETWORKS
+// @License Type - GPLv3/Open Source
+//
+// ---------------------------------------------------------------------------------------------------------------------------------
+//
+// SOFTWARE LICENSE AGREEMENT
+// IMPORTANT - READ CAREFULLY
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+// ---------------------------------------------------------------------------------------------------------------------------------
+
+
+#ifndef __INCLUDED_CORE_LISTS_NICKNAME_H__
+#define __INCLUDED_CORE_LISTS_NICKNAME_H__
+
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// DEFINES
+// ---------------------------------------------------------------------------------------------------------------------------------
+#define		E	extern
+
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// FLAGS
+// ---------------------------------------------------------------------------------------------------------------------------------
+enum
+{
+	NICK_IS_JUPE		=	1,
+	NICK_IS_OPER		=	2,
+	NICK_IS_IDENTIFIED	=	4,
+	NICK_IS_ADMIN		=	8,
+	NICK_IS_ROOT		=	16,
+	NICK_IS_SERVICE		=	32
+};
+
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// MACROS
+// ---------------------------------------------------------------------------------------------------------------------------------
+// IRC OPERATOR MACROS
+#define		IsOperator(x)				((x)->flags & NICK_IS_OPER)
+#define		SetOperator(x)				((x)->flags |= NICK_IS_OPER)
+#define		DelOperator(x)				((x)->flags &= ~NICK_IS_OPER)
+// IRC SERVICE MACROS
+#define		SetService(x)				((x)->flags |= NICK_IS_SERVICE)
+#define		IsService(x)				((x)->flags & NICK_IS_SERVICE)
+#define		DelService(x)				((x)->flags &= ~NICK_IS_SERVICE)
+// UWORLD ADMINISTRATOR MACROS
+// These will soon be retired, auth to services will be handled by NickServ
+#define		SetAdministrator(x)			((x)->flags |= NICK_IS_ADMIN)
+#define		IsAdministrator(x)			((x)->flags & NICK_IS_ADMIN)
+#define		DelAdministrator(x)			((x)->flags &= ~NICK_IS_ADMIN)
+// NICK Jupe MACROS
+// These will be retired/rewritten
+#define		SetNickJupe(x)				((x)->flags |= NICK_IS_JUPE)
+#define		IsNickJupe(x)				((x)->flags & NICK_IS_JUPE)
+#define		DelNickJupe(x)				((x)->flags &= ~NICK_IS_JUPE)
+
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// STRUCTURES
+// ---------------------------------------------------------------------------------------------------------------------------------
+typedef struct _nickname_list
+{
+	char				*nickname;
+	char				*username;
+	struct	_hostname_list		*hostp;
+	char				*server;
+	char				*numeric;
+	int				flags;
+	time_t				stamp;
+	time_t				lastsent;
+	int				numChans;
+	int				flood;
+	int				nservice_kill;
+	struct	_nickname_channel_list	*chanhead;
+	struct	_nickname_list		*next;
+	struct	_admin_list		*adminp;
+} Nickname_List;
+
+
+Nickname_List *nickname_list_head;
+
+
+typedef struct _nickname_channel_list
+{
+	struct	_channel_list		*channelp;
+	int				flags;
+	struct	_nickname_channel_list	*next;
+} Nickname_Channel_List;
+
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// PROTOTYPES
+// ---------------------------------------------------------------------------------------------------------------------------------
+E	Nickname_List		*ircsp_nickname_add				(char *, char *, struct _hostname_list *, char *, char *, time_t);
+E	Nickname_List		*ircsp_nickname_find				(char *);
+E	Nickname_List		*ircsp_nickname_find_by_numeric			(char *);
+E	void			ircsp_nickname_del				(char *);
+E	void			ircsp_nickname_del_by_server			(char *);
+
+
+E	Nickname_Channel_List	*ircsp_nickname_chanlist_add			(Nickname_List *, struct _channel_list *);
+E	Nickname_Channel_List	*ircsp_nickname_chanlist_find			(Nickname_List *, struct _channel_list *);
+E	void			ircsp_nickname_chanlist_del			(Nickname_List *, struct _channel_list *);
+
+
+#endif		// __INCLUDED_CORE_LISTS_NICKNAME_H__ 

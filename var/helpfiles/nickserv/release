@@ -1,0 +1,10 @@
+Syntax: ^B/msg ^N RELEASE nickname [password]^B
+
+Instructs ^N to remove any hold on your nickname
+caused by automatic kill protection or use of theRECOVE
+command.  By default, such holds last for 30 minutes; this
+command gets rid of them sooner.
+	
+In order to use the ^BRELEASE^B command for a nickname, you must
+supply the correct password for the nickname, or you must
+already have identified to a nick linked to the given nick.

@@ -1,0 +1,8 @@
+Syntax: ^B/msg ^O HELP^B
+ 
+The ^BHELP^B command will give you a list of commands
+that you should be able to access with your current
+access level.
+ 
+You can also get help on a specific topic example:
+^B/msg ^O HELP HELP^B

@@ -1,0 +1,32 @@
+2.0.1
+	- debug.h
+		Debug flags will be moved from configure.ac to here
+
+	- Nickinfo_Blacklist
+		- Need to create a linked list/database to store blacklisted nicknames.
+			- Need to add a few flags to black listed nicknames
+				1) JUPE - For blacklisted nicknamed that will be Juped
+				2) REGISTER - For blacklisted nicknames that are just not allowed to be registered
+				3) SERVICE - Blacklisted service nicknames just to prevent users from using typical service nicknames
+				   Such as "N", "NickServ", "Uworld", etc.
+
+	- Need to make a ConfigModule nickname search that will search all ConfigModule objects for ServiceNicknames
+	  to prevent someone from being able to register a service nickname.
+
+
+	  - Need to rename / standardize function names and make a code standard doc
+	  - to start i'm thinking all Linked list function calls will be named using a psudeo CamelCase example below
+			1) Nickinfo_Register   - Create a new object in the linked list
+			2) Nickinfo_Search     - Search the list for a object
+			3) Nickinfo_Unregister - Remove a object from the list
+
+	- All other objects will be named as follows
+		1) nickinfo_validate
+		2) nickinfo_expire
+
+	- Module functions that will be linked to function pointers in our main codebase
+		cmd_join -> libundernet_cmd_join
+
+
+2.0.2
+	* OperServ

@@ -1,0 +1,4 @@
+Help on:  ^BREMGLINE^B
+Syntax: /msg ^U REMGLINE <hostmask>
+ 
+Usage:  Manually removes a GLINE

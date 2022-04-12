@@ -1,0 +1,50 @@
+General HELP on ^U
+ 
+Use: /msg ^U HELP [topic] to get help on a given topic.
+ 
+@3
+^BServices Root Commands^B
+*** CHLEVEL      -    Change the minimum level required for a command
+*** REHASH       -    Rehash databases and conf files
+*** RESTART      -    Restart Services
+*** DIE          -    Shutdown Services
+*** SAVE         -    Save databases
+*** CMDLIST      -    Show command list and status
+*** ENABLECMD    -    Enable a command
+*** DISABLECMD   -    Disable a command
+@2
+^BServices Admin Commands^B
+*** MASSKILL     -    Kill all users matching a user@host
+@1
+^BIRC Operator Commands^B
+*** SCAN         -    Scan for matching userhosts
+*** CLEARMODES   -    Clears all MODES off a given channel
+*** OPERMSG      -    Send a notice to all OPERS
+*** CLEAROPS     -    Clear all ops off a given channel
+*** CLEARBANS    -    Clear all bans off a given channel
+*** OPCOM        -    Allows opers to op/deop voice/devoice users
+*** MODE         -    Set channel modes
+*** WHOIS        -    Extended WHOIS information on given nick
+*** XLATE        -    Translates a numeric into its nickname
+*** GLINE        -    Add a global BAN
+*** REMGLINE     -    Remove a global BAN
+*** AUTH         -    Authenticate with services
+*** DEAUTH       -    De-Authenticate with services
+*** NICKLIST     -    Display a list of nicknames online
+*** SERVLIST     -    Display a list of servers online
+*** HOSTLIST     -    Display a list of hostnames / clones
+*** ADMINLIST    -    List of admins and their status
+*** GLINELIST    -    List of global BANS
+*** CHANLIST     -    Display a list of all channels
+*** UPTIME       -    Display IRCSP uptime
+*** WHOISON      -    Display a list of who is on a given channel
+*** BANLIST      -    Display ban list on a given channel
+*** VERIFY       -    Verify if a user is a ^N Administrator
+@0
+^BGeneral User Commands^B
+*** OPERLIST     -    List of IRC Operators currently online
+*** VERSION      -    Display IRCSP version information
+*** HELP         -    Shows this screen
+ 
+ 
+End of HELP

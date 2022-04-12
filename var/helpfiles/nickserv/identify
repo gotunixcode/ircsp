@@ -1,0 +1,6 @@
+Syntax: /msg ^N ^BIDENTIFY password^B
+
+Tells ^N that you are really the owner of this
+nickname. Many commands will require you to 
+authenticate yourself with this command before
+you can use them.  

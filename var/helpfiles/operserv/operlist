@@ -1,0 +1,5 @@
+Syntax: ^B/msg ^O OPERLIST^B
+ 
+The ^BOPERLIST^B command will give you a list of IRC
+operators that are currently on the network. Keep 
+in mind the operator may not be active.

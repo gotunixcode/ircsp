@@ -1,0 +1,82 @@
+Level 1000
+|- SAVE					-	DONE
+|- REHASH				-	DONE
+|- DIE					-	DONE
+|- SET					-
+|- CHLEVEL				-	DONE
+|- DUMP					-
+|- RESTART				-	DONE
+|- CMDLIST				-	DONE
+
+Level 0900
+|- WALLOPS				-
+|- DISABLECOM				-
+|- ENABLECOM				-
+|- JOIN					-
+|- PART					-
+|- SAY					-
+|- DO					-
+|- MASSKILL				-	DONE
+
+Level 0800
+|- ADDUSER				-
+|- REMUSER				-
+|- MODUSER				-
+|- SUSPEND				-
+|- UNSUSPEND				-
+
+Level 0700
+|- COLLIDE				-
+|- WHOISON				-	DONE
+|- NUMNUKE				-
+|- ADDEXEMPT				-
+|- REMEXEMPT				-
+|- JUPE					-
+|- LOCK					-
+|- UNLOCK				-
+|- KILL					-
+
+Level 0400
+|- RESERVE				-
+|- UNRESERVE				-
+|- LASTCOMM				-
+|- LASTLOG				-
+|- GLINE				-	DONE
+|- REMGLINE				-	DONE
+|- CLEARCHAN				-
+
+Level 0100
+|- NEWPASS
+|- SCAN					-
+|- COUNT				-
+|- SHOW					-
+|- OPERMSG				-	DONE
+|- CLEAROPS				-	DONE
+|- CLEARBANS				-	DONE
+|- MODE					-
+|- OPCOM				-	
+|- KICK					-
+
+Level 0001
+|- NICKLIST				-	DONE
+|- SERVLIST				-	DONE
+|- HOSTLIST				-	DONE
+|- GLINELIST				-	DONE
+|- ADMINLIST				-	DONE
+|- BANLIST				-	DONE
+|- MSGCHAN				-
+|- INVITE				-
+|- MAP					-
+|- WHOIS				-	DONE
+|- ACCESS				-
+|- MKPASSWD				-
+|- UPTIME				-	DONE
+|- XLATE				-	DONE
+|- AUTH					-	DONE
+|- DEAUTH				-	DONE
+
+Level 0000
+|- OPERLIST				-	DONE
+|- VERSION				-	DONE
+|- VERIFY				-	DONE
+|- COPYRIGHT				-	

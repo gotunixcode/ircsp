@@ -1,0 +1,6 @@
+Help on: ^BAUTH^B
+Syntax /msg ^U AUTH <username> <password>
+ 
+Usage: Authorizes yourself to ^U.  Every authorization
+attempt is relayed to the oper channel, successfull or
+failed.

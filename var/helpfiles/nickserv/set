@@ -1,0 +1,15 @@
+Syntax: /msg ^N ^BSET option paramters^B
+ 
+Sets various nickname options.
+ 
+    ^BKILL^B          Turn kill protection on or off
+    ^BSECURE^B        Turn on secure mode
+    ^BAUTOIDENTIFY^B  Turn on auto identify
+    ^BPASSWORD^B      Change your nickname password
+ 
+In order to use this command you must first identify 
+with your password (^B/msg ^N HELP IDENTIFY^B) for more
+information.
+ 
+Type ^B/msg ^N HELP SET [option]^b for more information
+on a specific option.

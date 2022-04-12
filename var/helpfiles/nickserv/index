@@ -1,0 +1,36 @@
+@0
+^B^N^B allows you to "register" a nickname and
+prevent others from using them. If the nickname
+is not used for 30 days, the registration will
+expire.  The following commands allow for
+registration and maintenance of nicknames;
+to use them: ^B/msg ^N <command>^B .
+For more information on a specific command
+type ^B/msg ^N HELP <command>^B.
+ 
+^BGeneral User Commands:^B
+    ^BREGISTER^B    Register a Nickname
+    ^BIDENTIFY^B    Identify yourself with your password
+    ^BACCESS^B      Modify the list of authorized addresses
+    ^BSET^B         Set options, including kill protection
+    ^BDROP^B        Cancel the registeration of a nickname
+    ^BRECOVER^B     Kill another user who has taken your nickname
+    ^BRELEASE^B     Regain custody of your nickname after a RECOVER
+    ^BGHOST^B       Remove Ghost user
+ 
+@2
+^BServices Admin Commands:^B 
+    ^BNONE^B
+ 
+@3
+^BServices Root Commands:^B
+    ^BNONE^B
+ 
+@0
+^BNOTICE^B: This service is intended to provide a way for
+IRC users to ensure their identity is not compromised.
+It is ^BNOT^B intended to facilitate "stealing" of 
+nicknames and other malicious actions. Abuse of
+^N will result in, at minimum, loss of the abused
+nickname(s).
+

@@ -1,0 +1,8 @@
+Syntax: /msg ^N ^BDROP^B
+ 
+Drops your nickname from the ^N databsase. A nickname
+that has been dropped is free for anyone to re-register.
+ 
+In order to use this command you first identify with
+your password (/msg ^N ^BHELP IDENTIFY^B) for more
+information.

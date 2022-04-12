@@ -1,0 +1,15 @@
+Syntax: ^BRECOVER nickname [password]^B
+ 
+Allows you to recover your nickname if someone else has
+taken it; this does the same thing that ^N does
+automatically if someone tries to use a kill-protected
+nickname.
+	
+When you give this command, ^N will bring a fake user
+online with the same nickname as the user you're trying to
+recover your nick from, causing the IRC servers to
+disconnect the other user.  This fake user will remain
+online for 30 minutes to ensure that the other user does not
+immediately reconnect; after that time, you can reclaim
+your nick.  Alternatively, use the RELEASE command
+/msg ^N HELP RELEASE) to get the nick back sooner.

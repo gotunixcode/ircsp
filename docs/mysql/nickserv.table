@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS nickserv(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nickname VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    last_login VARCHAR(255) NOT NULL,
+    last_seen INT(11) NOT NULL,
+    registered INT(11) NOT NULL,
+    flags INT(8) NOT NULL,
+    setting_flags INT(8) NOT NULL
+)  ENGINE=INNODB;
